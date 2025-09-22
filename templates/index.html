@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تكلم مع نانو</title>
+    <style>
+        /* --- الخط والتصميم العام --- */
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap' );
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- حاوية الدردشة الرئيسية --- */
+        .chat-container {
+            width: 90%;
+            max-width: 600px;
+            height: 95vh;
+            background-color: #1e1e1e;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- رأس الصفحة (اسم نانو) --- */
+        .chat-header {
+            background-color: #2a2a2a;
+            padding: 15px 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-header .avatar {
+            width: 45px;
+            height: 45px;
+            background-color: #764abc; /* لون بنفسجي مميز */
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            font-size: 20px;
+            color: #fff;
+            margin-left: 15px;
+        }
+
+        .chat-header h1 {
+            margin: 0;
+            font-size: 1.4em;
+            color: #fff;
+        }
+
+        /* --- منطقة عرض الرسائل --- */
+        .chat-box {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* تخصيص شريط التمرير */
+        .chat-box::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-box::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        .chat-box::-webkit-scrollbar-thumb {
+            background-color: #444;
+            border-radius: 10px;
+        }
+
+        /* --- تصميم فقاعات الرسائل --- */
+        .message {
+            max-width: 75%;
+            padding: 12px 18px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background-color: #764abc; /* بنفسجي */
+            color: #fff;
+            align-self: flex-end; /* رسالتك على اليمين */
+            border-bottom-right-radius: 5px;
+        }
+
+        .nano-message {
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+            align-self: flex-start; /* رسالة نانو على اليسار */
+            border-bottom-left-radius: 5px;
+        }
+
+        .thinking-indicator {
+            align-self: flex-start;
+            color: #888;
+            font-style: italic;
+        }
+
+        /* --- منطقة الإدخال (الكتابة والإرسال) --- */
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #333;
+            background-color: #2a2a2a;
+        }
+
+        #userInput {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 1px solid #444;
+            border-radius: 25px;
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+            font-size: 1em;
+            font-family: 'Tajawal', sans-serif;
+        }
+        #userInput:focus {
+            outline: none;
+            border-color: #764abc;
+        }
+
+        #sendBtn {
+            background-color: #764abc;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: background-color 0.2s;
+        }
+        #sendBtn:hover {
+            background-color: #8a63d1;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="avatar">ن</div>
+            <h1>نانو</h1>
+        </div>
+        <div class="chat-box" id="chatBox">
+            <!-- الرسائل ستظهر هنا -->
+            <div class="message nano-message">
+                أهلين، وش ودك تسولف فيه؟
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="userInput" placeholder="اكتب كلمة أو جملة..." autocomplete="off">
+            <button id="sendBtn">➤</button>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chatBox');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        // دالة لإضافة رسالة إلى الواجهة
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'nano-message');
+            messageDiv.textContent = text;
+            chatBox.appendChild(messageDiv);
+            // تمرير الشاشة للأسفل تلقائيًا
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // دالة لإظهار مؤشر "يفكر..."
+        function showThinkingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.id = 'thinking';
+            indicator.classList.add('message', 'thinking-indicator');
+            indicator.textContent = 'نانو يفكر...';
+            chatBox.appendChild(indicator);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // دالة لإزالة مؤشر "يفكر..."
+        function removeThinkingIndicator() {
+            const indicator = document.getElementById('thinking');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        // دالة لإرسال الرسالة إلى الخادم (بايثون)
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (text === '') return;
+
+            addMessage(text, 'user');
+            userInput.value = '';
+            showThinkingIndicator();
+
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: text }),
+                });
+
+                const data = await response.json();
+                removeThinkingIndicator();
+                addMessage(data.reply, 'nano');
+
+            } catch (error) {
+                removeThinkingIndicator();
+                addMessage('عفوًا، فيه مشكلة في الاتصال. حاول مرة ثانية.', 'nano');
+                console.error('Error:', error);
+            }
+        }
+
+        // ربط الأحداث
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+
+</body>
+</html>

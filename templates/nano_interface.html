@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نانو - المساعد الذكي الجديد</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Tahoma', 'Geneva', 'Verdana', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+
+        .status-bar {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 18px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            font-size: 1em;
+            color: #495057;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .status-value {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .chat-container {
+            height: 500px;
+            overflow-y: auto;
+            border: 2px solid #dee2e6;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            background: linear-gradient(to bottom, #fafafa 0%, #f5f5f5 100%);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .message {
+            margin: 20px 0;
+            padding: 18px 22px;
+            border-radius: 20px;
+            max-width: 75%;
+            word-wrap: break-word;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .message:hover {
+            transform: translateY(-2px);
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            text-align: right;
+            border-bottom-right-radius: 5px;
+            font-weight: 500;
+        }
+
+        .nano-message {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: 2px solid #667eea;
+            margin-right: auto;
+            text-align: right;
+            border-bottom-left-radius: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .input-container input {
+            flex: 1;
+            padding: 18px 25px;
+            border: 3px solid #667eea;
+            border-radius: 30px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.9);
+        }
+
+        .input-container input:focus {
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+            background: white;
+        }
+
+        .input-container button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 35px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .input-container button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .input-container button:active {
+            transform: translateY(0);
+        }
+
+        .debug-info {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            padding: 12px 16px;
+            margin-top: 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            color: #37474f;
+            border-left: 4px solid #667eea;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 15px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+
+        .typing-dots {
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .typing-dots span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #667eea;
+            margin: 0 1px;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .welcome-message {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+            border: 2px solid #4caf50;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .welcome-message h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .welcome-message p {
+            color: #388e3c;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+                border-radius: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+            }
+            
+            .status-bar {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .chat-container {
+                height: 400px;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+            
+            .input-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .input-container input,
+            .input-container button {
+                width: 100%;
+            }
+        }
+
+        /* Scrollbar styling */
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 نانو الجديد</h1>
+            <p>المساعد الذكي بالشخصية الطبيعية والعناد الصحي</p>
+        </div>
+        
+        <div class="status-bar">
+            <div class="status-item">
+                <span>📊 المزاج:</span>
+                <span class="status-value" id="mood">يتم التحميل...</span>
+            </div>
+            <div class="status-item">
+                <span>💭 المحادثات:</span>
+                <span class="status-value" id="conversations">0</span>
+            </div>
+            <div class="status-item">
+                <span>🎯 مستوى العلاقة:</span>
+                <span class="status-value" id="relationship">50%</span>
+            </div>
+            <div class="status-item">
+                <span>⚡ الحالة:</span>
+                <span class="status-value" id="status">متصل</span>
+            </div>
+        </div>
+
+        <div class="welcome-message">
+            <h3>🎉 مرحباً بك في نانو الجديد!</h3>
+            <p>
+                نانو الآن أصبح أكثر طبيعية وذكاءً! 🧠✨<br>
+                يتفاعل معك كصديق حقيقي - أحياناً عنيد، أحياناً ساخر، وأحياناً متعاطف.<br>
+                جرب أن تطلب منه أشياء مختلفة وشوف ردود أفعاله! 😄
+            </p>
+        </div>
+        
+        <div class="chat-container" id="chatContainer">
+            <div class="message nano-message">
+                السلام عليكم! أنا نانو الجديد 🤖<br>
+                شخصيتي صارت أكثر طبيعية الحين - مو دايماً مطيع! 😏<br>
+                وش تبي نتكلم عنه؟
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            نانو يفكر في الرد
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا... جرب 'سوي لي قهوة' أو 'ممكن تساعدني؟'" onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">إرسال</button>
+        </div>
+    </div>
+
+    <script>
+        let isProcessing = false;
+
+        async function sendMessage() {
+            if (isProcessing) return;
+            
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            isProcessing = true;
+            
+            // إضافة رسالة المستخدم
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // إظهار مؤشر الكتابة
+            showTypingIndicator();
+            
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                // إخفاء مؤشر الكتابة
+                hideTypingIndicator();
+                
+                if (data.error) {
+                    addMessage('❌ خطأ: ' + data.error, 'nano');
+                } else {
+                    addMessage(data.response, 'nano', {
+                        confidence: data.confidence,
+                        mood: data.mood,
+                        method: data.method,
+                        emotion: data.emotion,
+                        reasoning: data.reasoning
+                    });
+                }
+                
+                // تحديث الحالة
+                updateStatus();
+                
+            } catch (error) {
+                hideTypingIndicator();
+                addMessage('❌ خطأ في الاتصال: ' + error.message, 'nano');
+            }
+            
+            isProcessing = false;
+        }
+        
+        function addMessage(text, sender, debug = null) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            let content = text;
+            
+            // إضافة معلومات التشخيص إذا كانت متوفرة
+            if (debug && debug.confidence) {
+                const confidencePercent = (debug.confidence * 100).toFixed(1);
+                const moodEmoji = getMoodEmoji(debug.mood);
+                
+                content += `<div class="debug-info">
+                    ${moodEmoji} المزاج: ${debug.mood} | 
+                    📈 الثقة: ${confidencePercent}% | 
+                    ⚙️ الطريقة: ${debug.method}
+                    ${debug.emotion ? ` | 💭 المشاعر: ${debug.emotion}` : ''}
+                </div>`;
+            }
+            
+            messageDiv.innerHTML = content;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            // إضافة تأثير الظهور
+            messageDiv.style.opacity = '0';
+            messageDiv.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                messageDiv.style.transition = 'all 0.3s ease';
+                messageDiv.style.opacity = '1';
+                messageDiv.style.transform = 'translateY(0)';
+            }, 50);
+        }
+        
+        function getMoodEmoji(mood) {
+            const moodEmojis = {
+                'ودود': '😊',
+                'عنيد': '😤',
+                'ساخر': '😏',
+                'مرح': '😄',
+                'متضايق': '😠',
+                'مشاكس': '😜',
+                'جاد': '🤔',
+                'كسلان': '😴'
+            };
+            return moodEmojis[mood] || '🤖';
+        }
+        
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'block';
+        }
+        
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+        
+        async function updateStatus() {
+            try {
+                const response = await fetch('/status');
+                const status = await response.json();
+                
+                document.getElementById('mood').textContent = status.personality.current_mood;
+                document.getElementById('conversations').textContent = status.performance.total_interactions;
+                document.getElementById('relationship').textContent = Math.round(status.user_profile.relationship_level * 100) + '%';
+                document.getElementById('status').textContent = 'متصل';
+                
+                // تحديث لون مستوى العلاقة
+                const relationshipElement = document.getElementById('relationship');
+                const relationshipLevel = status.user_profile.relationship_level;
+                if (relationshipLevel > 0.7) {
+                    relationshipElement.style.background = '#4caf50';
+                } else if (relationshipLevel > 0.4) {
+                    relationshipElement.style.background = '#ff9800';
+                } else {
+                    relationshipElement.style.background = '#f44336';
+                }
+                
+            } catch (error) {
+                document.getElementById('status').textContent = 'خطأ في الاتصال';
+                document.getElementById('status').style.background = '#f44336';
+            }
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !isProcessing) {
+                sendMessage();
+            }
+        }
+        
+        // تحديث الحالة كل 10 ثواني
+        setInterval(updateStatus, 10000);
+        
+        // تحديث الحالة عند التحميل
+        updateStatus();
+        
+        // رسائل ترحيبية تفاعلية
+        const welcomeMessages = [
+            "جرب تقول لي 'سوي لي قهوة' وشوف إيش بيحصل! ☕",
+            "قول 'أنا أذكى واحد' وشوف ردي 😏",
+            "إذا قلت 'ممكن تساعدني؟' بشوف إيش أقدر أسوي لك",
+            "اكتب 'أنا زعلان' وشوف كيف بتعامل معك",
+            "حاول تشتمني وشوف إيش بيصير! 😤"
+        ];
+        
+        let messageIndex = 0;
+        setInterval(() => {
+            if (messageIndex < welcomeMessages.length) {
+                setTimeout(() => {
+                    addMessage(welcomeMessages[messageIndex], 'nano');
+                    messageIndex++;
+                }, 2000);
+            }
+        }, 15000); // كل 15 ثانية
+        
+        // تركيز تلقائي على حقل الإدخال
+        document.getElementById('messageInput').focus();
+    </script>
+</body>
+</html>

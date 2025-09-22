@@ -1,0 +1,54 @@
+{
+  "user_profile": {
+    "personality_type": "casual",
+    "relationship_level": 0.56,
+    "interaction_count": 3,
+    "preference_patterns": {
+      "casual": 1
+    },
+    "last_interaction": "2025-09-20 15:21:14.065216"
+  },
+  "behavior_settings": {
+    "stubbornness_threshold": 0.7,
+    "sarcasm_probability": 0.3,
+    "learning_rate": 0.1,
+    "personality_adaptation": true,
+    "emotion_sensitivity": 0.8
+  },
+  "performance_stats": {
+    "total_interactions": 3,
+    "successful_responses": 3,
+    "failed_responses": 0,
+    "average_confidence": 0.7799999999999999,
+    "last_reset": "2025-09-20 15:20:41.778287"
+  },
+  "conversation_memory": [
+    {
+      "timestamp": "2025-09-20T15:20:57.621961",
+      "user_input": "هلا",
+      "nano_response": "أهلاً وسهلاً",
+      "method_used": "mixed",
+      "confidence": 0.7999999999999999,
+      "mood": "ودود",
+      "emotion": "حب"
+    },
+    {
+      "timestamp": "2025-09-20T15:21:06.081416",
+      "user_input": "كيفك؟",
+      "nano_response": "تسلم يا غالي",
+      "method_used": "personality",
+      "confidence": 0.7400000000000001,
+      "mood": "ودود",
+      "emotion": "حب"
+    },
+    {
+      "timestamp": "2025-09-20T15:21:14.065203",
+      "user_input": "تعال",
+      "nano_response": "والله وش أخبارك؟",
+      "method_used": "mixed",
+      "confidence": 0.7999999999999999,
+      "mood": "ودود",
+      "emotion": "حب"
+    }
+  ]
+}

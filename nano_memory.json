@@ -1,0 +1,57 @@
+{
+  "conversation_history": [
+    {
+      "timestamp": "2025-09-17T19:51:56.693366",
+      "user_message": "السلام عليكم، كيف الحال؟",
+      "nano_response": "وعليكم السلام، الحمدلله بخير وأنت كيفك؟",
+      "emotion_detected": "neutral",
+      "topic_category": "general",
+      "cultural_markers": [
+        "religious:الحمدلله",
+        "greetings:السلام عليكم"
+      ],
+      "confidence_level": 0.5,
+      "memory_importance": 5
+    },
+    {
+      "timestamp": "2025-09-17T19:51:56.694733",
+      "user_message": "الحمدلله، أنا فرحان اليوم لأن حصلت على وظيفة جديدة",
+      "nano_response": "مبروك عليك! الله يبارك لك في الوظيفة الجديدة",
+      "emotion_detected": "joy",
+      "topic_category": "work",
+      "cultural_markers": [
+        "religious:الله",
+        "religious:الحمدلله",
+        "emotions:فرحان"
+      ],
+      "confidence_level": 0.1111111111111111,
+      "memory_importance": 10
+    },
+    {
+      "timestamp": "2025-09-17T19:51:56.695367",
+      "user_message": "أشكرك، بس قلقان شوي من التحدي الجديد",
+      "nano_response": "هذا طبيعي، بإذن الله تتأقلم بسرعة وتنجح",
+      "emotion_detected": "fear",
+      "topic_category": "general",
+      "cultural_markers": [
+        "religious:الله",
+        "religious:بإذن الله",
+        "emotions:قلقان"
+      ],
+      "confidence_level": 0.2857142857142857,
+      "memory_importance": 8
+    },
+    {
+      "timestamp": "2025-09-17T19:51:56.696066",
+      "user_message": "كيف أتعامل مع ضغط العمل؟",
+      "nano_response": "المهم تنظم وقتك وتاخذ راحة بين الفترات",
+      "emotion_detected": "neutral",
+      "topic_category": "work",
+      "cultural_markers": [],
+      "confidence_level": 0.5,
+      "memory_importance": 5
+    }
+  ],
+  "personality_profiles": {},
+  "last_updated": "2025-09-17T19:51:56.697749"
+}

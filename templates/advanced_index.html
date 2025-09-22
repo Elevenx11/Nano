@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نانو المتطور - مع المشاعر والوحدات</title>
+    <style>
+        /* --- الخط والتصميم العام --- */
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #e0e0e0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- الحاوية الرئيسية --- */
+        .main-container {
+            display: flex;
+            width: 95%;
+            max-width: 1200px;
+            height: 95vh;
+            gap: 15px;
+        }
+
+        /* --- لوحة المعلومات الجانبية --- */
+        .info-panel {
+            width: 300px;
+            background-color: #1e1e1e;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+        }
+
+        .info-section {
+            margin-bottom: 25px;
+        }
+
+        .info-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #764abc;
+            margin-bottom: 10px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        /* --- حالة المشاعر --- */
+        .emotion-display {
+            text-align: center;
+            padding: 15px;
+            background-color: #2a2a2a;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .current-emotion {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .emotion-name {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #764abc;
+        }
+
+        .emotion-intensity {
+            margin-top: 10px;
+        }
+
+        .intensity-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .intensity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #FFC107, #F44336);
+            transition: width 0.3s ease;
+        }
+
+        /* --- الوحدات --- */
+        .module-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background-color: #2a2a2a;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #764abc;
+        }
+
+        .module-name {
+            font-size: 0.9em;
+            flex-grow: 1;
+        }
+
+        .module-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #4CAF50;
+        }
+
+        .module-status.inactive {
+            background-color: #f44336;
+        }
+
+        /* --- الإحصائيات --- */
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .stats-label {
+            color: #999;
+        }
+
+        .stats-value {
+            color: #764abc;
+            font-weight: 700;
+        }
+
+        /* --- منطقة الدردشة --- */
+        .chat-container {
+            flex-grow: 1;
+            background-color: #1e1e1e;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- رأس الدردشة --- */
+        .chat-header {
+            background-color: #2a2a2a;
+            padding: 15px 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-header .avatar {
+            width: 45px;
+            height: 45px;
+            background-color: #764abc;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            font-size: 20px;
+            color: #fff;
+            margin-left: 15px;
+        }
+
+        .chat-header h1 {
+            margin: 0;
+            font-size: 1.4em;
+            color: #fff;
+        }
+
+        .status-badges {
+            display: flex;
+            gap: 10px;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            background-color: #764abc;
+            color: white;
+        }
+
+        /* --- منطقة الرسائل --- */
+        .chat-box {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-box::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-box::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        .chat-box::-webkit-scrollbar-thumb {
+            background-color: #444;
+            border-radius: 10px;
+        }
+
+        /* --- الرسائل --- */
+        .message {
+            max-width: 75%;
+            padding: 12px 18px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .user-message {
+            background-color: #764abc;
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+
+        .nano-message {
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-emotion {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 1.2em;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .thinking-indicator {
+            align-self: flex-start;
+            color: #888;
+            font-style: italic;
+        }
+
+        /* --- منطقة الإدخال --- */
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #333;
+            background-color: #2a2a2a;
+        }
+
+        #userInput {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 1px solid #444;
+            border-radius: 25px;
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+            font-size: 1em;
+            font-family: 'Tajawal', sans-serif;
+        }
+        #userInput:focus {
+            outline: none;
+            border-color: #764abc;
+        }
+
+        #sendBtn {
+            background-color: #764abc;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: background-color 0.2s;
+        }
+        #sendBtn:hover {
+            background-color: #8a63d1;
+        }
+
+        /* --- أزرار التحكم --- */
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .control-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 15px;
+            background-color: #555;
+            color: white;
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .control-btn:hover {
+            background-color: #666;
+        }
+
+        .control-btn.danger {
+            background-color: #f44336;
+        }
+
+        .control-btn.danger:hover {
+            background-color: #d32f2f;
+        }
+
+        /* --- رسوم متحركة --- */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .emotion-display.active {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- لوحة المعلومات الجانبية -->
+        <div class="info-panel">
+            <!-- المشاعر -->
+            <div class="info-section">
+                <div class="info-title">🧠 المشاعر</div>
+                <div class="emotion-display" id="emotionDisplay">
+                    <div class="current-emotion" id="emotionIcon">😌</div>
+                    <div class="emotion-name" id="emotionName">هدوء</div>
+                    <div class="emotion-intensity">
+                        <div class="intensity-bar">
+                            <div class="intensity-fill" id="intensityFill" style="width: 50%;"></div>
+                        </div>
+                        <small id="intensityText">50%</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- الوحدات -->
+            <div class="info-section">
+                <div class="info-title">⚙️ الوحدات</div>
+                <div id="modulesList">
+                    <!-- سيتم ملؤها بالجافاسكريبت -->
+                </div>
+            </div>
+
+            <!-- الإحصائيات -->
+            <div class="info-section">
+                <div class="info-title">📊 الإحصائيات</div>
+                <div class="stats-item">
+                    <span class="stats-label">المحادثات:</span>
+                    <span class="stats-value" id="conversationCount">0</span>
+                </div>
+                <div class="stats-item">
+                    <span class="stats-label">المشاعر النشطة:</span>
+                    <span class="stats-value" id="activeEmotions">1</span>
+                </div>
+            </div>
+
+            <!-- أزرار التحكم -->
+            <div class="info-section">
+                <div class="control-buttons">
+                    <button class="control-btn" onclick="updateStatus()">🔄 تحديث</button>
+                    <button class="control-btn danger" onclick="resetEmotions()">💔 إعادة تعيين المشاعر</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- منطقة الدردشة -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <div class="header-left">
+                    <div class="avatar">ن</div>
+                    <h1>نانو المتطور</h1>
+                </div>
+                <div class="status-badges">
+                    <div class="badge" id="moduleBadge">4 وحدات</div>
+                    <div class="badge" id="emotionBadge">المشاعر نشطة</div>
+                </div>
+            </div>
+            
+            <div class="chat-box" id="chatBox">
+                <div class="message nano-message">
+                    أهلين! أنا نانو الجديد مع نظام المشاعر والوحدات 🤖✨
+                    <br>جرب تكلمني وشوف كيف تتغير مشاعري! 😊
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <input type="text" id="userInput" placeholder="اكتب رسالتك هنا..." autocomplete="off">
+                <button id="sendBtn">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chatBox');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        
+        // أيقونات المشاعر
+        const emotionIcons = {
+            'سعادة': '😊',
+            'حزن': '😢', 
+            'غضب': '😠',
+            'حب': '💖',
+            'ثقة': '🤝',
+            'خوف': '😰',
+            'دهشة': '😮',
+            'احترام': '🙏',
+            'حماس': '🔥',
+            'هدوء': '😌'
+        };
+
+        // دالة لإضافة رسالة
+        function addMessage(text, sender, emotion = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'nano-message');
+            messageDiv.textContent = text;
+            
+            // إضافة أيقونة المشاعر للرسائل
+            if (emotion && sender === 'nano') {
+                const emotionDiv = document.createElement('div');
+                emotionDiv.classList.add('message-emotion');
+                emotionDiv.textContent = emotionIcons[emotion] || '😐';
+                messageDiv.appendChild(emotionDiv);
+            }
+            
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // دالة لإظهار مؤشر التفكير
+        function showThinkingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.id = 'thinking';
+            indicator.classList.add('message', 'thinking-indicator');
+            indicator.textContent = 'نانو يفكر ويحلل مشاعره...';
+            chatBox.appendChild(indicator);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function removeThinkingIndicator() {
+            const indicator = document.getElementById('thinking');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        // دالة لتحديث عرض المشاعر
+        function updateEmotionDisplay(emotion, intensity) {
+            const emotionIcon = document.getElementById('emotionIcon');
+            const emotionName = document.getElementById('emotionName');
+            const intensityFill = document.getElementById('intensityFill');
+            const intensityText = document.getElementById('intensityText');
+            const emotionDisplay = document.getElementById('emotionDisplay');
+
+            emotionIcon.textContent = emotionIcons[emotion] || '😐';
+            emotionName.textContent = emotion;
+            
+            const percentage = Math.round(intensity * 100);
+            intensityFill.style.width = percentage + '%';
+            intensityText.textContent = percentage + '%';
+
+            // تأثير نبضة عند تغيير المشاعر
+            emotionDisplay.classList.add('active');
+            setTimeout(() => {
+                emotionDisplay.classList.remove('active');
+            }, 2000);
+        }
+
+        // دالة لتحديث قائمة الوحدات
+        function updateModulesList(modules) {
+            const modulesList = document.getElementById('modulesList');
+            modulesList.innerHTML = '';
+            
+            modules.forEach(module => {
+                const moduleDiv = document.createElement('div');
+                moduleDiv.classList.add('module-item');
+                
+                moduleDiv.innerHTML = `
+                    <div class="module-name">${module.name}</div>
+                    <div class="module-status ${module.active ? '' : 'inactive'}"></div>
+                `;
+                
+                modulesList.appendChild(moduleDiv);
+            });
+        }
+
+        // دالة لإرسال الرسالة
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (text === '') return;
+
+            addMessage(text, 'user');
+            userInput.value = '';
+            showThinkingIndicator();
+
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: text }),
+                });
+
+                const data = await response.json();
+                removeThinkingIndicator();
+                
+                addMessage(data.reply, 'nano', data.emotion);
+                
+                // تحديث المشاعر
+                updateEmotionDisplay(data.emotion, data.emotion_intensity);
+                
+                // تحديث الحالة
+                updateStatus();
+
+            } catch (error) {
+                removeThinkingIndicator();
+                addMessage('عفواً، حدث خطأ في الاتصال 😔', 'nano');
+                console.error('Error:', error);
+            }
+        }
+
+        // دالة لتحديث الحالة
+        async function updateStatus() {
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+                
+                // تحديث الإحصائيات
+                document.getElementById('conversationCount').textContent = data.conversation_history;
+                document.getElementById('activeEmotions').textContent = data.emotion.active_emotions;
+                
+                // تحديث الوحدات
+                updateModulesList(data.modules);
+                
+                // تحديث الشارات
+                document.getElementById('moduleBadge').textContent = `${data.modules.length} وحدات`;
+                
+            } catch (error) {
+                console.error('Error updating status:', error);
+            }
+        }
+
+        // دالة لإعادة تعيين المشاعر
+        async function resetEmotions() {
+            try {
+                await fetch('/reset_emotions', { method: 'POST' });
+                updateEmotionDisplay('هدوء', 0.5);
+                addMessage('تم إعادة تعيين مشاعري 🔄', 'nano', 'هدوء');
+            } catch (error) {
+                console.error('Error resetting emotions:', error);
+            }
+        }
+
+        // ربط الأحداث
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // تحديث الحالة كل 5 ثوانٍ
+        setInterval(updateStatus, 5000);
+        
+        // تحديث أولي
+        updateStatus();
+    </script>
+</body>
+</html>

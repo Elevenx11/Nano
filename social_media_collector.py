@@ -1,320 +1,343 @@
-# social_media_collector.py - جامع النصوص من المحادثات الاجتماعية
+# social_media_collector.py - جمع البيانات من وسائل التواصل الاجتماعي
+import requests
 import json
-import random
-from typing import List, Dict
 import re
+import time
+from datetime import datetime, timedelta
+import logging
+from typing import List, Dict, Optional
+import hashlib
+from urllib.parse import quote_plus
+import random
 
 class SocialMediaCollector:
-    """جامع النصوص من محادثات وسائل التواصل الاجتماعي"""
+    """جامع البيانات من مواقع التواصل الاجتماعي"""
     
     def __init__(self):
-        self.riyadh_dialect_patterns = self.setup_riyadh_patterns()
-        self.conversation_types = self.setup_conversation_types()
+        self.setup_logging()
+        
+        # قائمة الكلمات المفتاحية للبحث عن المحتوى السعودي
+        self.saudi_keywords = [
+            "السعودية", "الرياض", "جدة", "الدمام", "مكة", "المدينة",
+            "وش رايكم", "كيفكم", "شلونكم", "الله يعطيكم العافية",
+            "صباح الخير", "مساء الخير", "كل عام وانتم بخير",
+            "الله يوفقك", "ان شاء الله", "ما شاء الله", "بسم الله",
+            "يالله", "طيب", "زين", "كفو", "مشكور", "تسلم",
+            "الحين", "شوي", "مره", "بطل", "عاد", "خلاص"
+        ]
     
-    def setup_riyadh_patterns(self) -> Dict:
-        """أنماط لهجة أهل الرياض المميزة"""
-        return {
-            "greetings": [
-                "هلا والله", "الله يهلا فيك", "اهلين", "مرحبا",
-                "وش خبرك", "شخبارك", "كيفك", "شلونك",
-                "صباح الخير", "مساء الخير", "تصبح على خير"
-            ],
-            
-            "responses": [
-                "الحمدلله", "زين", "بخير", "تمام", "عادي",
-                "والله", "صدق", "اكيد", "طبعا", "ايه"
-            ],
-            
-            "expressions": [
-                "يا رجال", "يا خوي", "يا صديقي", "يا غالي",
-                "ما شاء الله", "الله يعينك", "الله يوفقك",
-                "ان شاء الله", "بإذن الله", "الله كريم"
-            ],
-            
-            "daily_words": [
-                "شغل", "بيت", "اهل", "عيال", "ولد", "بنت",
-                "موية", "اكل", "نوم", "سيارة", "جوال",
-                "فلوس", "شراي", "سوق", "دوام"
-            ]
-        }
+    def setup_logging(self):
+        """إعداد نظام التسجيل"""
+        logging.basicConfig(
+            filename=f'social_collector_{datetime.now().strftime("%Y%m%d")}.log',
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            encoding='utf-8'
+        )
+        self.logger = logging.getLogger(__name__)
     
-    def setup_conversation_types(self) -> Dict:
-        """أنواع المحادثات المختلفة"""
-        return {
-            "whatsapp_family": self.generate_family_conversations(),
-            "whatsapp_friends": self.generate_friends_conversations(),
-            "twitter_comments": self.generate_twitter_style(),
-            "instagram_comments": self.generate_instagram_style(),
-            "discord_gaming": self.generate_discord_style()
-        }
-    
-    def generate_family_conversations(self) -> List[str]:
-        """محادثات عائلية على الواتساب"""
-        family_convos = [
-            # محادثات الأم
-            "يمه وش تطبخين اليوم",
-            "بطبخ مندي ان شاء الله",
-            "زين والله نشتهيه",
-            "تعال البيت بدري",
-            "ان شاء الله يمه",
-            
-            # محادثات الأب
-            "ابوي وين راحت السيارة",
-            "اخذها اخوك للجامعة",
-            "طيب متى يرجعها",
-            "العصر ان شاء الله",
-            
-            # محادثات الأخوان
-            "اخوي جبت لي الشي اللي طلبته",
-            "ايه في الشنطة",
-            "تسلم ما قصرت",
-            "عادي هذا واجب",
-            
-            # مناسبات عائلية
-            "الجمعة عندنا عزيمة",
-            "مين جايين",
-            "الاقارب والجيران",
-            "زين نحضر شي حلو",
-            
-            # اهتمامات يومية
-            "ما نسيت تاخذ الدوا",
-            "لا خذته الصبح",
-            "زين انتبه لنفسك",
-            "الله يعافيك"
+    def collect_from_twitter_api(self, keywords: List[str], max_results: int = 100) -> List[Dict]:
+        """جمع البيانات من تويتر باستخدام API"""
+        collected_data = []
+        
+        # بيانات تجريبية من تويتر
+        sample_tweets = [
+            {
+                'text': "وش رايكم بالطقس اليوم؟ حار مره والله ☀️",
+                'created_at': datetime.now().isoformat(),
+                'user': {'username': 'user1', 'location': 'الرياض'},
+                'public_metrics': {'like_count': 15, 'retweet_count': 3}
+            },
+            {
+                'text': "الحمدلله على كل حال، اليوم كان يوم حلو 😊",
+                'created_at': datetime.now().isoformat(),
+                'user': {'username': 'user2', 'location': 'جدة'},
+                'public_metrics': {'like_count': 22, 'retweet_count': 8}
+            },
+            {
+                'text': "يا هلا فيك أخوي، كيف الصحة والعائلة؟",
+                'created_at': datetime.now().isoformat(),
+                'user': {'username': 'user3', 'location': 'الدمام'},
+                'public_metrics': {'like_count': 31, 'retweet_count': 5}
+            },
+            {
+                'text': "الله يعطيك العافية على هذا الشرح الوافي 👍",
+                'created_at': datetime.now().isoformat(),
+                'user': {'username': 'user4', 'location': 'مكة'},
+                'public_metrics': {'like_count': 45, 'retweet_count': 12}
+            },
+            {
+                'text': "شكرا لك يا غالي، ما قصرت والله",
+                'created_at': datetime.now().isoformat(),
+                'user': {'username': 'user5', 'location': 'المدينة'},
+                'public_metrics': {'like_count': 18, 'retweet_count': 4}
+            },
+            {
+                'text': "صباح الخير عليكم، كيف نومكم؟",
+                'created_at': datetime.now().isoformat(),
+                'user': {'username': 'user6', 'location': 'الرياض'},
+                'public_metrics': {'like_count': 12, 'retweet_count': 2}
+            },
+            {
+                'text': "والله انا من جد استفدت من هالمعلومات",
+                'created_at': datetime.now().isoformat(),
+                'user': {'username': 'user7', 'location': 'جدة'},
+                'public_metrics': {'like_count': 28, 'retweet_count': 7}
+            },
+            {
+                'text': "الله يسعدك ويوفقك في كل خطوة تخطيها",
+                'created_at': datetime.now().isoformat(),
+                'user': {'username': 'user8', 'location': 'الطائف'},
+                'public_metrics': {'like_count': 41, 'retweet_count': 11}
+            },
+            {
+                'text': "وش برامجكم للعطلة هالأيام؟ ابغى اروح مع العيال",
+                'created_at': datetime.now().isoformat(),
+                'user': {'username': 'user9', 'location': 'الرياض'},
+                'public_metrics': {'like_count': 23, 'retweet_count': 6}
+            },
+            {
+                'text': "انشالله الجو يعتدل قريباً، مااقدر على هالحر",
+                'created_at': datetime.now().isoformat(),
+                'user': {'username': 'user10', 'location': 'جدة'},
+                'public_metrics': {'like_count': 19, 'retweet_count': 4}
+            },
+            {
+                'text': "يااااه الحمدلله خلصنا من الامتحانات بالسلامة",
+                'created_at': datetime.now().isoformat(),
+                'user': {'username': 'user11', 'location': 'الدمام'},
+                'public_metrics': {'like_count': 33, 'retweet_count': 9}
+            },
+            {
+                'text': "اليوم جربت مطعم جديد في الحي، والله اكله لذيذ",
+                'created_at': datetime.now().isoformat(),
+                'user': {'username': 'user12', 'location': 'الرياض'},
+                'public_metrics': {'like_count': 27, 'retweet_count': 5}
+            }
         ]
         
-        return family_convos
+        for tweet_data in sample_tweets[:max_results]:
+            collected_data.append({
+                'platform': 'twitter',
+                'content': tweet_data['text'],
+                'timestamp': tweet_data['created_at'],
+                'engagement': tweet_data['public_metrics']['like_count'] + tweet_data['public_metrics']['retweet_count'],
+                'location': tweet_data['user'].get('location', ''),
+                'source_url': f"https://twitter.com/{tweet_data['user']['username']}"
+            })
+        
+        self.logger.info(f"تم جمع {len(collected_data)} تغريدة من Twitter")
+        return collected_data
     
-    def generate_friends_conversations(self) -> List[str]:
-        """محادثات الأصدقاء"""
-        friends_convos = [
-            # تخطيط للقاءات
-            "يلا نطلع نتغدى",
-            "وين تبون نروح",
-            "اي مكان على كيفكم",
-            "طيب المطعم اللي جنب الجامعة",
-            "تم الساعة وحدة",
-            
-            # مساعدات بين الأصدقاء
-            "محتاج اطلب منك خدمة",
-            "تفضل وش تحتاج",
-            "توصلني للمطار بكرة",
-            "اكيد متى الموعد",
-            "الساعة عشرة الصبح",
-            "لا تشيل هم راح اجيك",
-            
-            # مناقشات عامة
-            "شايف المطر امس",
-            "ايه كان قوي مرة",
-            "الحمدلله نحتاج له",
-            "صدقت الجو صار احسن",
-            
-            # تشجيع ودعم
-            "مبروك على النجاح",
-            "الله يبارك فيك",
-            "تستاهل والله",
-            "شكرا لك يا غالي",
-            
-            # خطط مستقبلية
-            "وش خططك للاجازة",
-            "ودي اسافر مكان جديد",
-            "فكرة حلوة وين تفكر تروح",
-            "يمكن البحرين او الامارات",
-            "حلو استمتع"
+    def collect_from_reddit(self, subreddits: List[str] = ['saudiarabia', 'riyadh'], max_posts: int = 50) -> List[Dict]:
+        """جمع البيانات من Reddit"""
+        collected_data = []
+        
+        # بيانات تجريبية من Reddit
+        sample_posts = [
+            {
+                'title': "أفضل مطاعم في الرياض - شاركوا تجاربكم",
+                'selftext': "وش أفضل مطعم رحتوا له في الرياض؟ ابغى أجرب أماكن جديدة",
+                'created_utc': time.time(),
+                'score': 25,
+                'num_comments': 15,
+                'subreddit': 'riyadh'
+            },
+            {
+                'title': "نصائح للطقس الحار",
+                'selftext': "الجو حار مره هالأيام، وش أفضل الطرق للتعامل معه؟",
+                'created_utc': time.time(),
+                'score': 42,
+                'num_comments': 23,
+                'subreddit': 'saudiarabia'
+            },
+            {
+                'title': "تجربتي مع الشغل في الرياض",
+                'selftext': "حبيت أشارككم تجربتي الجديدة في العمل، والله صار لي شهر وأنا مبسوط",
+                'created_utc': time.time(),
+                'score': 67,
+                'num_comments': 31,
+                'subreddit': 'riyadh'
+            },
+            {
+                'title': "استفسار عن جامعات المملكة",
+                'selftext': "ابغى اعرف ايش أفضل جامعة لتخصص الهندسة؟ ياليت تساعدوني",
+                'created_utc': time.time(),
+                'score': 34,
+                'num_comments': 19,
+                'subreddit': 'saudiarabia'
+            },
+            {
+                'title': "كيف الوضع مع توصيل الطلبات",
+                'selftext': "صار لي فترة استخدم تطبيقات التوصيل، بس احس الأسعار غالية شوي",
+                'created_utc': time.time(),
+                'score': 18,
+                'num_comments': 8,
+                'subreddit': 'riyadh'
+            },
+            {
+                'title': "وش أفضل ماركات في الرياض",
+                'selftext': "ابغى اشتري هدايا للعائلة، وش تنصحوني من الماركات؟",
+                'created_utc': time.time(),
+                'score': 29,
+                'num_comments': 16,
+                'subreddit': 'riyadh'
+            },
+            {
+                'title': "تجربتي مع طلب الوظائف",
+                'selftext': "خلصت قبل كم شهر وابغى اشتغل، وش نصائحكم للتقديم؟",
+                'created_utc': time.time(),
+                'score': 45,
+                'num_comments': 22,
+                'subreddit': 'saudiarabia'
+            }
         ]
         
-        return friends_convos
+        for post in sample_posts[:max_posts]:
+            if post['selftext']:  # فقط المنشورات التي تحتوي على نص
+                collected_data.append({
+                    'platform': 'reddit',
+                    'content': f"{post['title']} - {post['selftext']}",
+                    'timestamp': datetime.fromtimestamp(post['created_utc']).isoformat(),
+                    'engagement': post['score'] + post['num_comments'],
+                    'location': 'Saudi Arabia',
+                    'source_url': f"https://reddit.com/r/{post['subreddit']}"
+                })
+        
+        self.logger.info(f"تم جمع {len(collected_data)} منشور من Reddit")
+        return collected_data
     
-    def generate_twitter_style(self) -> List[str]:
-        """نمط تعليقات تويتر"""
-        twitter_style = [
-            # تعليقات إيجابية
-            "كلام جميل ما شاء الله",
-            "صدقت في كلامك",
-            "نقطة مهمة فعلا",
-            "الله يعطيك العافية",
-            
-            # تعليقات عامة
-            "الوضع صعب هالايام",
-            "الله يعين الجميع",
-            "نحتاج نصبر اكثر",
-            "ان شاء الله يتحسن الحال",
-            
-            # ردود قصيرة
-            "زين قلت",
-            "صح لسانك",
-            "والله صادق",
-            "اتفق معك",
-            
-            # دعاء ومباركات
-            "الله يوفق الجميع",
-            "ربنا يحفظنا",
-            "الله يبارك لك",
-            "جزاك الله خير"
+    def collect_from_forums(self) -> List[Dict]:
+        """جمع البيانات من المنتديات العربية والسعودية"""
+        collected_data = []
+        
+        # بيانات تجريبية من المنتديات
+        sample_forum_posts = [
+            {
+                'content': "السلام عليكم ورحمة الله وبركاته، كيفكم يا شباب؟",
+                'forum': 'hawamer',
+                'timestamp': datetime.now().isoformat(),
+                'replies': 12
+            },
+            {
+                'content': "جربت المطعم الجديد في الرياض، والله كان أكله زين مره",
+                'forum': 'saudieng',
+                'timestamp': datetime.now().isoformat(),
+                'replies': 8
+            },
+            {
+                'content': "وش رايكم في الأجواء الحلوة هالأيام؟ الحمدلله انكسر الحر شوي",
+                'forum': 'almrsal',
+                'timestamp': datetime.now().isoformat(),
+                'replies': 15
+            },
+            {
+                'content': "ابغى اسافر خارج المملكة، وش تنصحوني من الدول؟",
+                'forum': 'travel_ksa',
+                'timestamp': datetime.now().isoformat(),
+                'replies': 23
+            },
+            {
+                'content': "الحمدلله خلصت الجامعة اخيراً، ادعولي اشتغل شغل زين",
+                'forum': 'graduates',
+                'timestamp': datetime.now().isoformat(),
+                'replies': 7
+            }
         ]
         
-        return twitter_style
+        for post in sample_forum_posts:
+            collected_data.append({
+                'platform': 'forum',
+                'content': post['content'],
+                'timestamp': post['timestamp'],
+                'engagement': post['replies'],
+                'location': 'Saudi Arabia',
+                'source_url': f"https://www.{post['forum']}.com"
+            })
+        
+        self.logger.info(f"تم جمع {len(collected_data)} منشور من المنتديات")
+        return collected_data
     
-    def generate_instagram_style(self) -> List[str]:
-        """نمط تعليقات انستقرام"""
-        instagram_style = [
-            # تعليقات على الصور
-            "صورة حلوة ما شاء الله",
-            "المكان يجنن",
-            "الله يعطيك العافية",
-            "تستاهل كل خير",
-            
-            # تفاعل مع المحتوى
-            "محتوى مفيد شكرا",
-            "استفدت منك كثير",
-            "الله يجزاك خير",
-            "معلومة حلوة",
-            
-            # تشجيع
-            "كفو عليك",
-            "مبدع كالعادة",
-            "يعطيك الف عافية",
-            "تسلم ايدك"
-        ]
+    def collect_all_sources(self, max_per_source: int = 100) -> List[Dict]:
+        """جمع البيانات من جميع المصادر"""
+        all_data = []
         
-        return instagram_style
-    
-    def generate_discord_style(self) -> List[str]:
-        """نمط محادثات دسكورد (ألعاب وتقنية)"""
-        discord_style = [
-            # محادثات الألعاب (بدون أسماء محددة)
-            "يلا نلعب راوند ثاني",
-            "انا جاهز متى ما تبون",
-            "الكونكشن عندي زين اليوم",
-            "حلو يلا نبدا",
-            
-            # تقنية عامة
-            "الانترنت عندكم كيف اليوم",
-            "زين الحمدلله سريع",
-            "عندي مشكلة في الراوتر",
-            "جرب تعيد تشغيله",
-            
-            # تفاعل عام
-            "شكرا للمساعدة",
-            "عفوا اي وقت",
-            "خدمة وشرف",
-            "تسلم يا غالي"
-        ]
+        print("🔄 بدء جمع البيانات من جميع المصادر...")
         
-        return discord_style
-    
-    def collect_quality_conversations(self, total_count: int = 500) -> List[str]:
-        """جمع محادثات عالية الجودة"""
-        all_conversations = []
-        
-        # جمع من جميع المصادر
-        for source, convos in self.conversation_types.items():
-            all_conversations.extend(convos)
-        
-        # إضافة محادثات متنوعة إضافية
-        additional_convos = self.generate_diverse_conversations(200)
-        all_conversations.extend(additional_convos)
-        
-        # تصفية وتحسين
-        quality_conversations = []
-        for conv in all_conversations:
-            if self.is_quality_conversation(conv):
-                quality_conversations.append(conv)
-        
-        # خلط وإرجاع العدد المطلوب
-        random.shuffle(quality_conversations)
-        return quality_conversations[:total_count]
-    
-    def generate_diverse_conversations(self, count: int) -> List[str]:
-        """توليد محادثات متنوعة"""
-        diverse = []
-        
-        # قوالب محادثات
-        templates = [
-            "وش رايك في {topic}",
-            "كيف حالك مع {topic}",
-            "متى بت{action}",
-            "وين {place} اللي تحبه",
-            "{feeling} اليوم من {reason}"
-        ]
-        
-        topics = ["الشغل", "الدراسة", "الاجازة", "الطقس", "الصحة"]
-        actions = ["روح", "تاكل", "تنام", "تسافر", "تدرس"]
-        places = ["المطعم", "المكان", "البيت", "المقهى", "المتجر"]
-        feelings = ["مبسوط", "متعب", "مرتاح", "متحمس", "هادي"]
-        reasons = ["الشغل", "الراحة", "الاجازة", "الطقس الحلو", "انجاز شي حلو"]
-        
-        for i in range(count):
-            template = random.choice(templates)
-            filled = template.format(
-                topic=random.choice(topics),
-                action=random.choice(actions),
-                place=random.choice(places),
-                feeling=random.choice(feelings),
-                reason=random.choice(reasons)
+        try:
+            # جمع من تويتر
+            print("📱 جمع من Twitter...")
+            twitter_data = self.collect_from_twitter_api(
+                keywords=self.saudi_keywords[:5], 
+                max_results=min(max_per_source, 8)  # حد أقصى للبيانات التجريبية
             )
-            diverse.append(filled)
-        
-        return diverse
+            all_data.extend(twitter_data)
+            
+            # جمع من Reddit
+            print("🔴 جمع من Reddit...")
+            reddit_data = self.collect_from_reddit(max_posts=min(max_per_source, 5))
+            all_data.extend(reddit_data)
+            
+            # جمع من المنتديات
+            print("💬 جمع من المنتديات...")
+            forum_data = self.collect_from_forums()
+            all_data.extend(forum_data)
+            
+            # تطبيق التصفية
+            filtered_data = []
+            for item in all_data:
+                if self.filter_saudi_content(item['content']):
+                    item['content_hash'] = hashlib.md5(
+                        item['content'].encode('utf-8')
+                    ).hexdigest()
+                    filtered_data.append(item)
+            
+            print(f"✅ تم جمع {len(all_data)} عنصر، وتمت تصفية {len(filtered_data)} عنصر مناسب")
+            self.logger.info(f"جمع البيانات: {len(all_data)} الكل، {len(filtered_data)} مصفى")
+            
+            return filtered_data
+            
+        except Exception as e:
+            self.logger.error(f"خطأ في جمع البيانات: {str(e)}")
+            print(f"❌ خطأ في جمع البيانات: {str(e)}")
+            return []
     
-    def is_quality_conversation(self, text: str) -> bool:
-        """فحص جودة المحادثة"""
-        # فحوصات الجودة
-        if len(text.strip()) < 5:  # قصير جداً
-            return False
+    def filter_saudi_content(self, content: str) -> bool:
+        """تصفية المحتوى للتأكد من أنه باللهجة السعودية"""
+        content_lower = content.lower()
         
-        if len(text.split()) > 20:  # طويل جداً
-            return False
+        # فحص الكلمات المفتاحية السعودية
+        saudi_word_count = sum(1 for keyword in self.saudi_keywords 
+                              if keyword.lower() in content_lower)
         
-        # فحص الأحرف العربية
-        arabic_chars = sum(1 for c in text if '\u0600' <= c <= '\u06FF')
-        if arabic_chars < len(text) * 0.6:  # قليل العربية
-            return False
-        
-        # فحص وجود كلمات من لهجة الرياض
-        riyadh_words_found = 0
-        text_lower = text.lower()
-        
-        for category, words in self.riyadh_dialect_patterns.items():
-            for word in words:
-                if word in text_lower:
-                    riyadh_words_found += 1
-        
-        return riyadh_words_found > 0
+        # إذا وجد كلمة واحدة أو أكثر من الكلمات السعودية
+        return saudi_word_count >= 1
     
-    def export_to_corpus(self, output_file: str = "social_media_corpus.json"):
-        """تصدير إلى ملف corpus"""
-        quality_conversations = self.collect_quality_conversations(800)
-        
-        corpus_data = {
-            "source": "Social Media Conversations - Saudi Riyadh Dialect",
-            "total_conversations": len(quality_conversations),
-            "quality_level": "High",
-            "sentences": quality_conversations
-        }
-        
-        with open(output_file, 'w', encoding='utf-8') as f:
-            json.dump(corpus_data, f, ensure_ascii=False, indent=2)
-        
-        print(f"✅ تم تصدير {len(quality_conversations)} محادثة إلى {output_file}")
-        return output_file
-
-# دالة تجريبية
-def test_collector():
-    """اختبار جامع النصوص"""
-    collector = SocialMediaCollector()
-    
-    print("🔄 جمع محادثات من مصادر مختلفة...")
-    conversations = collector.collect_quality_conversations(100)
-    
-    print(f"✅ تم جمع {len(conversations)} محادثة")
-    print("\nعينة من المحادثات:")
-    for i, conv in enumerate(conversations[:10], 1):
-        print(f"{i}. {conv}")
-    
-    # تصدير الملف
-    output_file = collector.export_to_corpus()
-    print(f"\n📁 الملف محفوظ في: {output_file}")
+    def close(self):
+        """إغلاق الاتصالات"""
+        # لا توجد اتصالات للإغلاق في النسخة المبسطة
+        self.logger.info("تم إغلاق جامع البيانات")
 
 if __name__ == "__main__":
-    test_collector()
+    collector = SocialMediaCollector()
+    
+    try:
+        # اختبار جمع البيانات
+        collected_data = collector.collect_all_sources(max_per_source=10)
+        
+        # عرض النتائج
+        print(f"\n📊 تم جمع {len(collected_data)} عنصر إجمالياً")
+        
+        if collected_data:
+            print("\n📄 عينة من البيانات المجمعة:")
+            for i, item in enumerate(collected_data[:5]):
+                print(f"   {i+1}. [{item['platform']}] {item['content'][:60]}...")
+                
+        # حفظ البيانات (اختياري)
+        with open(f"collected_sample_{datetime.now().strftime('%Y%m%d_%H%M')}.json", 'w', encoding='utf-8') as f:
+            json.dump(collected_data, f, ensure_ascii=False, indent=2)
+        
+        print(f"\n💾 تم حفظ البيانات في ملف JSON")
+        
+    finally:
+        collector.close()

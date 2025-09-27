@@ -1,0 +1,49 @@
+{
+  "training_schedule": {
+    "interval_hours": 2,
+    "daily_limit": 1000,
+    "peak_hours": [
+      9,
+      14,
+      20
+    ],
+    "avoid_hours": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "data_collection": {
+    "sources": {
+      "twitter": true,
+      "reddit": true,
+      "forums": true,
+      "youtube": false,
+      "instagram": false
+    },
+    "quality_threshold": 0.75,
+    "max_per_source": 200,
+    "dedupe_threshold": 0.9
+  },
+  "system_monitoring": {
+    "max_cpu_usage": 80,
+    "max_memory_usage": 85,
+    "disk_space_min_gb": 5,
+    "enable_notifications": true,
+    "notification_email": ""
+  },
+  "performance": {
+    "concurrent_sources": 3,
+    "request_delay": 1.0,
+    "retry_attempts": 3,
+    "batch_size": 100
+  },
+  "backup": {
+    "enable_backup": true,
+    "backup_interval_hours": 24,
+    "keep_backups_days": 7,
+    "backup_path": "backups/"
+  }
+}
